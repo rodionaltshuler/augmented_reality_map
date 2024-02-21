@@ -176,6 +176,18 @@ class HelloGeoRenderer(val activity: HelloGeoActivity) :
     //</editor-fold>
 
     // TODO: Obtain Geospatial information and display it on the map.
+    val earth = session.earth
+    if (earth?.trackingState == TrackingState.TRACKING){
+        // TODO: the Earth object may be used here.
+        val cameraGeospatialPose = earth.cameraGeospatialPose
+        activity.view.mapView?.updateMapPosition(
+          latitude = cameraGeospatialPose.latitude,
+          longitude = cameraGeospatialPose.longitude,
+          heading = cameraGeospatialPose.heading
+        )
+        activity.view.updateStatusText(earth, cameraGeospatialPose)
+
+    }
 
     // Draw the placed anchor, if it exists.
     earthAnchor?.let {
