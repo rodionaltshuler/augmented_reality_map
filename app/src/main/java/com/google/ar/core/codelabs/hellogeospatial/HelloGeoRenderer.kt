@@ -21,6 +21,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.maps.model.LatLng
 import com.google.ar.core.Anchor
+import com.google.ar.core.Pose
 import com.google.ar.core.TrackingState
 import com.google.ar.core.examples.java.common.helpers.DisplayRotationHelper
 import com.google.ar.core.examples.java.common.helpers.TrackingStateHelper
@@ -60,6 +61,8 @@ class HelloGeoRenderer(val activity: HelloGeoActivity) :
   val modelViewMatrix = FloatArray(16) // view x model
 
   val modelViewProjectionMatrix = FloatArray(16) // projection x view x model
+
+  private lateinit var lineRenderer: LineRenderer
 
   val session
     get() = activity.arCoreSessionHelper.session
@@ -103,6 +106,14 @@ class HelloGeoRenderer(val activity: HelloGeoActivity) :
 
       backgroundRenderer.setUseDepthVisualization(render, false)
       backgroundRenderer.setUseOcclusion(render, false)
+
+      lineRenderer = LineRenderer(render)
+      // Initialize your line here with start and end poses
+      // For example, using two predefined Pose objects
+      val startPose = Pose.makeTranslation(-0.5f, 0f, -1f) // Example start pose
+      val endPose = Pose.makeTranslation(0.5f, 0f, -1f) // Example end pose
+      lineRenderer.createLine(startPose, endPose)
+
     } catch (e: IOException) {
       Log.e(TAG, "Failed to read a required asset file", e)
       showError("Failed to read a required asset file: $e")
@@ -196,6 +207,17 @@ class HelloGeoRenderer(val activity: HelloGeoActivity) :
 
     // Compose the virtual scene with the background.
     backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR)
+
+    // Draw the line
+    // You need to calculate the correct modelViewProjectionMatrix for the line
+    val modelMatrix = FloatArray(16)
+    Pose.IDENTITY.toMatrix(modelMatrix, 0)
+    val modelViewMatrix = FloatArray(16)
+    Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0)
+    val modelViewProjectionMatrix = FloatArray(16)
+    Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0)
+
+    lineRenderer.drawLine(modelViewProjectionMatrix)
   }
 
   var earthAnchor: Anchor? = null
